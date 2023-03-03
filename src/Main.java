@@ -51,7 +51,7 @@ public class Main {
 
     public static void main(String[] args) {
         ArrayList<MatOfPoint> contours = null;
-        Mat img = Imgcodecs.imread("test6.jpg");
+        Mat img = Imgcodecs.imread("photo.jpg");
         if (img.empty()) {
             System.out.println("Не удалось загрузить изображение");
             return;
