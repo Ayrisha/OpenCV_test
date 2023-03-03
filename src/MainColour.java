@@ -3,6 +3,7 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.Comparator;
@@ -52,17 +53,8 @@ public class MainColour {
 
         double[] size;
         clusters[0] = new ColorCluster();
-        size = img.get((int)img.height()/4, (int)img.width()/4);
+        size = img.get((int)img.height()/6, (int)img.width()/2);
         clusters[0].new_color = new Scalar(size[0], size[1], size[2]);
-        clusters[1] = new ColorCluster();
-        size = img.get((int)img.height()/4, (int)img.width()/4 * 3);
-        clusters[1].new_color = new Scalar(size[0], size[1], size[2]);
-        clusters[2] = new ColorCluster();
-        size = img.get((int)img.height()/4 * 3, (int)img.width()/4);
-        clusters[2].new_color = new Scalar(size[0], size[1], size[2]);
-        clusters[3] = new ColorCluster();
-        size = img.get((int)img.height()/4 * 3, (int)img.width()/4 * 3);
-        clusters[3].new_color = new Scalar(size[0], size[1], size[2]);
 
         while(true) {
             for(k=0; k<cluster_count; k++) {
@@ -129,6 +121,10 @@ public class MainColour {
         int w = dst2.width();
         for(i=0; i<cluster_count; i++ ){
             Imgproc.rectangle(dst2, new Point(0, i*h), new Point(w, i*h+h), clusters[colors.get(i).getKey()].color, -1);
+        }
+        boolean a = Imgcodecs.imwrite("main.jpg",dst2);
+        if (!a) {
+            System.out.println("Не удалось сохранить изображение");
         }
     }
 }
