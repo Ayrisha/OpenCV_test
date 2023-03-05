@@ -27,7 +27,7 @@ public class Contours {
     private void getContours(){
         Imgproc.adaptiveThreshold(img4, img4, 255,
                 Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,
-                Imgproc.THRESH_BINARY_INV, 21, 3);
+                Imgproc.THRESH_BINARY_INV, 7, 3);
         Imgproc.Canny(img4, img4, 150, 255);
         Imgproc.GaussianBlur(img4, img4, new Size(5, 5), 0);
         Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
