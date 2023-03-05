@@ -20,7 +20,8 @@ public class Main {
     public static final Scalar COLOR_LIGHTGREEN = colorRGB(153, 255, 153);
     public static final Scalar COLOR_BROWN = colorRGB(150, 75, 0);
 
-    public static final double backgroundsize = 2.5;
+    public static final double backgroundsize = 3.5;
+    public static Mat img;
 
     static {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
@@ -30,7 +31,8 @@ public class Main {
         return new Scalar(blue, green, red);
     }
 
-    public static void getHeight(Mat img5, ArrayList<MatOfPoint> contours, double humanImgHeight){
+    public static void getHeight(Mat img5, ArrayList<MatOfPoint> contours, Rect faceRect){
+        double pixelHeight = 0;
         int upper = 0;
         int lower = img5.height();
         Rect r = null;
@@ -44,31 +46,50 @@ public class Main {
                 lower = r.y;
             }
         }
-        System.out.println("Рост человека в пикселях: " +  humanImgHeight);
+        Imgproc.line(img, new Point(0, upper), new Point(img.width(), upper), COLOR_RED);
+        Imgproc.line(img, new Point(0, lower), new Point(img.width(), lower), COLOR_GREEN);
+        pixelHeight = backgroundsize / (upper - lower);
+        System.out.println("Рост человека в пикселях: " +  (faceRect.y - lower));
         System.out.println("Высота предмета в пикселях: " +  (upper - lower));
-        System.out.println("Рост человека: " + ((backgroundsize * humanImgHeight)/ (upper - lower)));
+        System.out.println("Рост человека: " + pixelHeight * (faceRect.y - lower));
+        System.out.println("Обьем головы: " + pixelHeight * faceRect.width);
     }
 
     public static void main(String[] args) {
         ArrayList<MatOfPoint> contours = null;
-        Mat img = Imgcodecs.imread("test6.jpg");
+        img = Imgcodecs.imread("test6.jpg");
         if (img.empty()) {
             System.out.println("Не удалось загрузить изображение");
             return;
         }
         String path = "classifier/haarcascade_fullbody.xml";
+        String pathFace = "classifier/haarcascade_frontalface_alt.xml";
         CascadeClassifier fullbody_detector = new CascadeClassifier();
         if (!fullbody_detector.load(path)) {
             System.out.println("Не удалось загрузить классификатор " + path);
             return;
         }
 
+        CascadeClassifier face_detector = new CascadeClassifier();
+        if (!face_detector.load(pathFace)) {
+            System.out.println("Не удалось загрузить классификатор " + pathFace);
+            return;
+        }
+
         MatOfRect fullbodyMat = new MatOfRect();
         fullbody_detector.detectMultiScale(img, fullbodyMat, 1.6, 3, 0, new Size(), new Size());
+
+        MatOfRect faceMat = new MatOfRect();
+        face_detector.detectMultiScale(img, faceMat);
 
         Rect bodyRect = null;
         for (Rect r : fullbodyMat.toList()) {
             bodyRect = new Rect(r.x, r.y, r.width, r.height);
+        }
+
+        Rect faceRect = null;
+        for (Rect r : faceMat.toList()) {
+            faceRect = new Rect(r.x, r.y, r.width, r.height);
         }
 
         Mat bodyImg = new Mat(img, bodyRect);
@@ -93,7 +114,7 @@ public class Main {
         contours = d.getContour();
         Mat height = d.getResult();
 
-        getHeight(height, contours, bodyRect.height);
+        getHeight(height, contours, faceRect);
 
         Imgproc.cvtColor(bodyImg, bodyImg, Imgproc.COLOR_BGR2GRAY);
 
@@ -109,10 +130,12 @@ public class Main {
         }
 
         Imgproc.cvtColor(img, img, Imgproc.COLOR_HSV2BGR);
-        Imgproc.line(img, new Point(0, 1173), new Point(img.width(), 1173), COLOR_RED);
-        Imgproc.line(img, new Point(0, 119), new Point(img.height(), 119), COLOR_GREEN);
         Imgproc.rectangle(img, new Point(bodyRect.x, bodyRect.y),
                 new Point(bodyRect.x + bodyRect.width, bodyRect.y + bodyRect.height), COLOR_BLACK);
+        Imgproc.rectangle(img, new Point(faceRect.x, faceRect.y),
+                new Point(faceRect.x + faceRect.width, faceRect.y + faceRect.height), COLOR_BLUE);
+
+        Imgproc.line(img, new Point(0, faceRect.y), new Point(img.width(), faceRect.y), COLOR_PINK);
 
         boolean crop = Imgcodecs.imwrite("photo_new.jpg",hMat);
         if (!crop) {
